@@ -1,31 +1,44 @@
-const express = require('express')
-const colecaoUf = require('./dados')
+import express from "express";
+import {colecaoUf, buscarUfPorid, buscarUfsPorNome, buscarUfs} from "./servicos/servico.js";
 
 const app = express()
 
-// isso é a entrada normal
+const buscarUfsPorNome = (nomeUf) => {
+    return colecaoUf.filter(uf => uf.nome.toLowerCase().includes(nomeUf.toLowerCase()))
+};
 
-// app.get('/ufs', (req, res) => {
-//     res.json(colecaoUf)
-// })
-
-//isso é a nova entrada para conseguir aparecer só o id
-
-// app.get('/ufs/:iduf', (req, res) => {
-//     const idUf = parseInt(req.params.iduf)
-//     const uf = colecaoUf.colecaoUf.find(u => u.id ===idUf)
-//     res.json(uf)
-// })
-
-// isso é para tratar a api falando o erro
+app.get('/ufs', (req, res) => {
+    const nomeUf = req.query.busca;
+    const resultado = nomeUf ? buscarUfsPorNome(nomeUf) : buscarUfs();
+    if (resultado.length > 0) {
+        res.json(resultado);
+    } else {
+        res.status(404).send({"erro": "Nenhuma UF encontrada"});
+    }
+})
 
 app.get('/ufs/:iduf', (req, res) => {
+    const uf = buscarUfPorid(req.params.iduf);
+
+    if (uf) {
+        res.json(uf);
+    } else if (isNaN(parseInt(req.params.iduf))) {
+        res.status(404).send({"erro": "requisição invalida"})
+    } else {
+        res.status(404).send({"erro": "Uf não encontrada"})
+    }
+})
+
+app.listen(8080, () => {
+    console.log('servidor inciado na porta 8080')
+});
+/*app.get('/ufs:iduf', (req, res) => {
     const idUf = parseInt(req.params.iduf)
     let mensagemErro = ''
     let uf 
 
     if (!(isNaN(idUf))) {
-        uf = colecaoUf.colecaoUf.find(u => u.id === idUf)
+        uf = colecaoUf.find(u => u.id === idUf)
         if (!uf) {
             mensagemErro = 'Uf não encontrada'
         }
@@ -41,4 +54,4 @@ app.get('/ufs/:iduf', (req, res) => {
 
 app.listen(8080, () =>{
     console.log('servidor iniciado na porta 8080')
-})
+})*/
